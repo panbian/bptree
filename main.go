@@ -166,6 +166,7 @@ func (t *Tree) initNodeForUsage(node *Node) {
 	node.IsLeaf = false
 }
 
+// 卞庞： 入口一个node，内部处理将该node的内存设置为无效
 func (t *Tree) clearNodeForUsage(node *Node) {
 	node.IsActive = false
 	node.Children = nil
@@ -178,6 +179,7 @@ func (t *Tree) clearNodeForUsage(node *Node) {
 	node.IsLeaf = false
 }
 
+// bianpang: 入口是文件位置offset，出口是一个node节点，该函数从对应的文件的offset位置开始解析，得到一个node
 func (t *Tree)seekNode(node *Node, off OFFTYPE) error {
 	if node == nil {
 		return fmt.Errorf("cant use nil for seekNode")
@@ -193,7 +195,7 @@ func (t *Tree)seekNode(node *Node, off OFFTYPE) error {
 	}
 	bs := bytes.NewBuffer(buf)
 
-	dataLen := uint64(0)
+	dataLen := uint64(0) // bianpang：前八个字节表示的是后面的node的大小, 因为node里面有数组表示子节点kv，所以node大小是不确定的，所以在文件中，每个node的前面都有一个长度标记，但是该标记不是node的一个字段。
 	if err = binary.Read(bs, binary.LittleEndian, &dataLen); err != nil {
 		return err
 	}
