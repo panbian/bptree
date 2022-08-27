@@ -472,6 +472,7 @@ func (t *Tree) putFreeBlocks(off OFFTYPE) {
 	t.freeBlocks = append(t.freeBlocks, off)
 }
 
+// bianpang: API入口
 func (t *Tree) Find(key uint64) (string, error) {
 	var (
 		node *Node
@@ -499,6 +500,7 @@ func (t *Tree) Find(key uint64) (string, error) {
 	return "", NotFoundKey
 }
 
+// bianpang: 通过key，找到对应node
 func (t *Tree)findLeaf(node *Node, key uint64) error {
 	var (
 		err error
@@ -517,6 +519,10 @@ func (t *Tree)findLeaf(node *Node, key uint64) error {
 
 	*node = *root
 
+	// bianpang: node的内容包括keys
+	// bianpang: 1. 如果是leaf，则还包括对应的values，且values和keys数量相等。
+	// bianpang: 2. 但是如果不是leaf，则没有values。只有children，且children数量比keys多一个。children是指针，也就是文件内部offset
+	// bianpang： 所以b+树的特点就是，每个node都有一批key，相当于主键，如果是非叶子结点，则每个key都要对应一个子node。如果是叶子结点则每个key都要对应一个val。当然最极端叶子节点只有一个key
 	for !node.IsLeaf {
 		idx := sort.Search(len(node.Keys), func(i int) bool {
 			return  key <= node.Keys[i]
