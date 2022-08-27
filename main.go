@@ -50,7 +50,7 @@ type Node struct {
 	Next     OFFTYPE
 	Prev     OFFTYPE
 	Parent   OFFTYPE
-	Keys 	 []uint64
+	Keys 	 []uint64  // b+树的索引是要排序的，所以key是数字，而不是string，string适合hash，也没办法排序，所以hash不是和scan
 	Records  []string
 	IsLeaf   bool
 }
