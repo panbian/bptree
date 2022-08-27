@@ -34,6 +34,7 @@ type OFFTYPE uint64
 // bianpang: 2.数据结构的存储：一个数据结构就是一个完整的文件，每个节点node都在该文件中。
 // bianpang: 3.对数据结构进行计算，比如初始化，插入，删除等操作的时候，不需要在内存上完全重建该数据结构（否则非常浪费内存，而且也就失去了使用磁盘的意义），只需要逐个加载node，对node计算即可。
 // bianpang: 4. 所以内存上需要实现的是一个数据结构的入口tree，以及node，并实现对tree的api操作，提供给用户的api，以及内部的操作，包括node的内存操作，以及磁盘和内存之间的转换操作。
+// bianpang: 5. 修改一个node，首先加载到内存方法是pread，反序列化到node struct，修改，序列化，flush会磁盘方法是pwrite，这个过程node大小可能变化。必须保证：node大小小于block块簇，依赖保证读写速度，二来保证不会覆盖写其他内容。因为大小可变，所以node前面要有datalen一同放到block里
 type Tree struct {
 	rootOff OFFTYPE
 	nodePool *sync.Pool
@@ -327,6 +328,8 @@ func (t *Tree)putNodePool(n *Node) {
 }
 
 // bianpang: 将一个node从内存写到磁盘
+// bianpang： 当我们修改了一个node之后，比如增加了node的children，node的大小肯定会变大，那么将其按照原来的位置flush回去，会不会覆盖掉后面原有的数据呢？
+// bianpang: 不会，因为一个node必须在一个块簇里面，超过这个size就返回错误，块簇的剩余位置是空的，不被使用。
 func (t *Tree)flushNode(n *Node) error {
 	if n == nil {
 		return fmt.Errorf("flushNode == nil")
@@ -410,6 +413,7 @@ func (t *Tree)flushNode(n *Node) error {
 
 	dataLen := len(bs.Bytes())
 	if uint64(dataLen) + 8 > t.blockSize {
+		// bianpang：node大小不能超过块簇大小, 保证磁盘读取一个block块簇就能读到一个node，且node之间不会交叠覆盖
 		return fmt.Errorf("flushNode len(node) = %d exceed t.blockSize %d", uint64(dataLen) + 4, t.blockSize)
 	}
 	tmpbs := bytes.NewBuffer(make([]byte, 0))
