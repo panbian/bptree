@@ -325,6 +325,7 @@ func (t *Tree)putNodePool(n *Node) {
 	t.nodePool.Put(n)
 }
 
+// bianpang: 将一个node从内存写到磁盘
 func (t *Tree)flushNode(n *Node) error {
 	if n == nil {
 		return fmt.Errorf("flushNode == nil")
