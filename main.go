@@ -560,7 +560,9 @@ func insertKeyValIntoLeaf(n *Node, key uint64, rec string) (int,  error){
 	return idx, nil
 }
 
+// bianpang: 将一个node作为child插入一个node的下面
 func insertKeyValIntoNode(n *Node, key uint64, child OFFTYPE) (int,  error){
+	// bianpang: 找到合适的key的位置
 	idx := sort.Search(len(n.Keys), func(i int) bool {
 		return key <= n.Keys[i]
 	})
@@ -568,6 +570,7 @@ func insertKeyValIntoNode(n *Node, key uint64, child OFFTYPE) (int,  error){
 		return 0, HasExistedKeyError
 	}
 
+	// bianpang: 将key和node的指针append到父node，然后移动到之前找到的idx位置，保证整个keys和children是有序的
 	n.Keys = append(n.Keys, key)
 	n.Children = append(n.Children, child)
 	for i := len(n.Keys) - 1; i > idx; i-- {
