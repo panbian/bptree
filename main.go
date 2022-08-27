@@ -186,6 +186,7 @@ func (t *Tree) clearNodeForUsage(node *Node) {
 }
 
 // bianpang: 入口是文件位置offset，出口是一个node节点，该函数从对应的文件的offset位置开始解析，得到一个node
+// bianpang: 从磁盘加载一个node到内存
 func (t *Tree)seekNode(node *Node, off OFFTYPE) error {
 	if node == nil {
 		return fmt.Errorf("cant use nil for seekNode")
